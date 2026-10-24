@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Larry’s Reminders">
+<meta name="theme-color" content="#eef1f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12161c" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Larry’s Reminders</title>
+<style>
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#1b2430; --muted:#5f6b7a; --line:#d6dde5;
+  --accent:#23407a; --accent-ink:#ffffff; --field:#f5f7fa; --overdue:#b4372b;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#12161c; --surface:#1a2028; --ink:#e7ecf2; --muted:#93a0b0; --line:#2a323d;
+    --accent:#7fa6ff; --accent-ink:#0d1626; --field:#141a21; --overdue:#ff8a78;
+    color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+main{max-width:640px;margin:0 auto;
+  padding:12px max(16px,env(safe-area-inset-right)) 120px max(16px,env(safe-area-inset-left))}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+h1{font:700 32px/1.1 ui-rounded,"SF Pro Rounded",-apple-system,sans-serif;letter-spacing:-.02em;margin:16px 0 4px}
+.sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+
+.add{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px}
+.add .new-text{width:100%;font-size:17px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
+.add-row{display:flex;gap:10px;align-items:center}
+.field{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);flex:1;min-width:0}
+input[type=date]{font-size:16px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;
+  background:var(--field);min-height:34px;min-width:132px;color:var(--ink)}
+.btn-primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 20px;font-weight:600}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin:22px 0 10px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:6px 12px;border-radius:999px;font-size:14px;font-weight:600}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.ghost{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:600}
+
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 8px 10px 12px;
+  transition:opacity .2s ease,transform .2s ease}
+.item.leaving{opacity:0;transform:translateX(16px)}
+.row1{display:flex;gap:10px;align-items:center}
+.check{appearance:none;-webkit-appearance:none;width:26px;height:26px;margin:0;flex:none;
+  border:2px solid var(--muted);border-radius:50%;display:grid;place-items:center;background:transparent}
+.check:checked{background:var(--accent);border-color:var(--accent)}
+.check:checked::after{content:"";width:6px;height:12px;border:solid var(--accent-ink);
+  border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.text{flex:1;min-width:0;border:0;background:transparent;font-size:17px;padding:6px 2px;border-radius:6px}
+.text:focus{outline:none;box-shadow:inset 0 -2px 0 var(--accent)}
+.del{border:0;background:transparent;color:var(--muted);font-size:22px;line-height:1;width:36px;height:36px;border-radius:8px;flex:none}
+.meta{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:6px 0 0 36px;font-size:13px;color:var(--muted)}
+.meta label{display:inline-flex;align-items:center;gap:6px}
+.clear{border:0;background:transparent;color:var(--muted);font-size:13px;text-decoration:underline;padding:4px}
+.overdue .due{color:var(--overdue);border-color:var(--overdue)}
+.overdue .due-label{color:var(--overdue)}
+.archived .text{text-decoration:line-through;color:var(--muted)}
+
+.empty{color:var(--muted);text-align:center;padding:28px 12px;border:1px dashed var(--line);border-radius:14px}
+.arch-toggle{width:100%;margin-top:22px;padding:11px;border-radius:12px}
+.arch h2{font-size:15px;color:var(--muted);margin:18px 0 8px;font-weight:600}
+
+.backup{margin-top:36px;color:var(--muted);font-size:14px}
+.backup summary{cursor:pointer;padding:6px 0}
+.backup p{margin:6px 0 10px}
+.backup .btns{display:flex;gap:8px}
+
+.toast-wrap{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;pointer-events:none;
+  padding:0 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.toast{pointer-events:auto;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 10px 10px 16px;
+  display:flex;gap:14px;align-items:center;box-shadow:0 6px 24px rgba(0,0,0,.25);
+  transform:translateY(140%);opacity:0;transition:transform .25s ease,opacity .25s ease}
+.toast.show{transform:none;opacity:1}
+.toast button{border:0;background:transparent;color:var(--bg);font-weight:700;padding:6px 8px;text-decoration:underline}
+@media (prefers-reduced-motion: reduce){.item,.toast{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Larry’s Reminders</h1>
+  <p class="sub" id="count"></p>
+
+  <form class="add" id="addForm" autocomplete="off">
+    <input class="new-text" id="newText" type="text" placeholder="What needs doing?" aria-label="New reminder" enterkeyhint="done">
+    <div class="add-row">
+      <label class="field">Due By <input type="date" id="newDue"></label>
+      <button class="btn-primary" type="submit">Add</button>
+    </div>
+  </form>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Sort by">
+      <button type="button" data-sort="due">Due By</button>
+      <button type="button" data-sort="added">Date Added</button>
+    </div>
+    <button type="button" class="ghost" id="dirBtn"></button>
+  </div>
+
+  <ul id="activeList"></ul>
+  <p class="empty" id="empty" hidden>Nothing on your list. Add something above.</p>
+
+  <button type="button" class="ghost arch-toggle" id="archToggle"></button>
+  <section class="arch" id="archSection" hidden>
+    <h2>Archived</h2>
+    <ul id="archList"></ul>
+    <p class="empty" id="archEmpty" hidden>No archived items yet.</p>
+  </section>
+
+  <details class="backup">
+    <summary>Backup</summary>
+    <p>Your reminders are stored only on this phone. Export a copy now and then so you can restore them if Safari data is ever cleared.</p>
+    <div class="btns">
+      <button type="button" class="ghost" id="exportBtn">Export</button>
+      <button type="button" class="ghost" id="importBtn">Import</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </details>
+</main>
+
+<div class="toast-wrap"><div class="toast" id="toast" role="status"><span id="toastMsg"></span><button type="button" id="undoBtn">Undo</button></div></div>
+
+<template id="rowTpl">
+  <li class="item">
+    <div class="row1">
+      <input type="checkbox" class="check" aria-label="Mark complete">
+      <input type="text" class="text" aria-label="Reminder" enterkeyhint="done">
+      <button type="button" class="del" aria-label="Delete">×</button>
+    </div>
+    <div class="meta">
+      <label><span class="due-label">Due By</span> <input type="date" class="due"></label>
+      <button type="button" class="clear" hidden>Clear</button>
+      <label class="comp-wrap">Completed <input type="date" class="comp"></label>
+      <span class="added"></span>
+    </div>
+  </li>
+</template>
+
+<script>
+const KEY = 'larrys-reminders:v1', PREF = 'larrys-reminders:prefs';
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const fmtAdded = iso => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+function readJSON(k, fallback) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? fallback; } catch (e) { return fallback; } }
+let items = readJSON(KEY, []); if (!Array.isArray(items)) items = [];
+let prefs = Object.assign({ sort: 'due', dir: 'asc', showArchived: false }, readJSON(PREF, {}));
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(items)); }
+  catch (e) { showToast('Couldn’t save. Storage is unavailable.'); }
+}
+function savePrefs() { try { localStorage.setItem(PREF, JSON.stringify(prefs)); } catch (e) {} }
+
+function sorted(list) {
+  const dir = prefs.dir === 'asc' ? 1 : -1;
+  return list.slice().sort((a, b) => {
+    if (prefs.sort === 'due') {
+      if (a.due && !b.due) return -1;          // items without a due date always go last
+      if (!a.due && b.due) return 1;
+      if (a.due !== b.due) return (a.due < b.due ? -1 : 1) * dir;
+      return a.added < b.added ? -1 : 1;
+    }
+    return (a.added < b.added ? -1 : a.added > b.added ? 1 : 0) * dir;
+  });
+}
+
+function makeRow(item) {
+  const li = $('rowTpl').content.firstElementChild.cloneNode(true);
+  if (item.done) li.classList.add('archived');
+  else if (item.due && item.due < today()) li.classList.add('overdue');
+
+  const cb = li.querySelector('.check');
+  cb.checked = !!item.done;
+  cb.setAttribute('aria-label', item.done ? 'Move back to list' : 'Mark complete');
+  cb.addEventListener('change', () => toggleDone(item, cb.checked, li));
+
+  const tx = li.querySelector('.text');
+  tx.value = item.text;
+  tx.addEventListener('input', () => { item.text = tx.value; save(); });
+  tx.addEventListener('keydown', e => { if (e.key === 'Enter') tx.blur(); });
+
+  const due = li.querySelector('.due'), clr = li.querySelector('.clear');
+  due.value = item.due || '';
+  clr.hidden = !item.due;
+  due.addEventListener('change', () => { item.due = due.value; save(); render(); });
+  clr.addEventListener('click', () => { item.due = ''; save(); render(); });
+
+  const compWrap = li.querySelector('.comp-wrap');
+  if (item.done) {
+    const comp = li.querySelector('.comp');
+    comp.value = item.completed || '';
+    comp.addEventListener('change', () => { item.completed = comp.value; save(); });
+  } else compWrap.remove();
+
+  li.querySelector('.added').textContent = 'Added ' + fmtAdded(item.added);
+
+  li.querySelector('.del').addEventListener('click', () => {
+    if (!confirm(`Delete “${item.text.trim() || 'this item'}”? This can’t be undone.`)) return;
+    items = items.filter(i => i !== item); save(); render();
+  });
+  return li;
+}
+
+function toggleDone(item, checked, li) {
+  const prevCompleted = item.completed;
+  item.done = checked;
+  item.completed = checked ? today() : '';
+  save();
+  li.classList.add('leaving');
+  setTimeout(render, 200);
+  if (checked) showToast('Archived', () => { item.done = false; item.completed = prevCompleted || ''; save(); render(); });
+  else showToast('Moved back to your list', () => { item.done = true; item.completed = prevCompleted; save(); render(); });
+}
+
+function render() {
+  const active = items.filter(i => !i.done), archived = items.filter(i => i.done);
+  $('activeList').replaceChildren(...sorted(active).map(makeRow));
+  $('empty').hidden = active.length > 0;
+  $('count').textContent = active.length === 0 ? 'All caught up' : `${active.length} to do`;
+
+  $('archToggle').textContent = `${prefs.showArchived ? 'Hide' : 'Show'} archived (${archived.length})`;
+  $('archToggle').setAttribute('aria-expanded', prefs.showArchived);
+  $('archSection').hidden = !prefs.showArchived;
+  if (prefs.showArchived) {
+    $('archList').replaceChildren(...sorted(archived).map(makeRow));
+    $('archEmpty').hidden = archived.length > 0;
+  }
+
+  document.querySelectorAll('[data-sort]').forEach(b => b.setAttribute('aria-pressed', b.dataset.sort === prefs.sort));
+  const labels = prefs.sort === 'due' ? ['Soonest first', 'Latest first'] : ['Oldest first', 'Newest first'];
+  $('dirBtn').textContent = prefs.dir === 'asc' ? labels[0] : labels[1];
+}
+
+$('addForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const text = $('newText').value.trim();
+  if (!text) { $('newText').focus(); return; }
+  items.push({ id: uid(), text, due: $('newDue').value, added: new Date().toISOString(), completed: '', done: false });
+  save();
+  $('newText').value = ''; $('newDue').value = '';
+  render();
+});
+
+document.querySelectorAll('[data-sort]').forEach(b => b.addEventListener('click', () => {
+  prefs.sort = b.dataset.sort; savePrefs(); render();
+}));
+$('dirBtn').addEventListener('click', () => { prefs.dir = prefs.dir === 'asc' ? 'desc' : 'asc'; savePrefs(); render(); });
+$('archToggle').addEventListener('click', () => { prefs.showArchived = !prefs.showArchived; savePrefs(); render(); });
+
+let toastTimer;
+function showToast(msg, undo) {
+  $('toastMsg').textContent = msg;
+  $('undoBtn').hidden = !undo;
+  $('undoBtn').onclick = () => { undo(); hideToast(); };
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 4000);
+}
+function hideToast() { $('toast').classList.remove('show'); }
+
+$('exportBtn').addEventListener('click', async () => {
+  const name = `larrys-reminders-${today()}.json`;
+  const file = new File([JSON.stringify(items, null, 2)], name, { type: 'application/json' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
+  } catch (e) { if (e.name === 'AbortError') return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+$('importBtn').addEventListener('click', () => $('importFile').click());
+$('importFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!Array.isArray(data) || !data.every(i => i && typeof i.text === 'string' && i.added)) throw new Error();
+    if (!confirm(`Replace your current list with ${data.length} items from this backup?`)) return;
+    items = data.map(i => ({ id: i.id || uid(), text: i.text, due: i.due || '', added: i.added, completed: i.completed || '', done: !!i.done }));
+    save(); render(); showToast('Backup imported');
+  } catch (err) { showToast('That file isn’t a Larry’s Reminders backup.'); }
+});
+
+// Re-check overdue highlighting when the app comes back to the foreground on a new day
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+render();
+</script>
+</body>
+</html>
